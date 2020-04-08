@@ -6,12 +6,11 @@ import (
 	"context"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/sirupsen/logrus"
 )
 
 //nolint:gocognit // Long method names are okay because only generated code will call this, not humans.
-func Server(ctx context.Context, name string, hl Manager, grpcHl GrpcManager, logger *logrus.Logger, promRegistry *prometheus.Registry) error {
-	mWare := prepareMiddleware(name, logger, promRegistry)
+func Server(ctx context.Context, name string, hl Manager, grpcHl GrpcManager, promRegistry *prometheus.Registry) error {
+	mWare := prepareMiddleware(ctx, name, promRegistry)
 
 	var restIsRunning, grpcIsRunning bool
 
@@ -19,7 +18,7 @@ func Server(ctx context.Context, name string, hl Manager, grpcHl GrpcManager, lo
 	var listenAdmin func() error
 	if hl != nil && hl.AdminServerConfig() != nil {
 		var err error
-		listenAdmin, err = configureAdminServerListener(hl, logger, promRegistry, mWare.admin)
+		listenAdmin, err = configureAdminServerListener(hl, promRegistry, mWare.admin)
 		if err != nil {
 			return err
 		}
@@ -31,7 +30,7 @@ func Server(ctx context.Context, name string, hl Manager, grpcHl GrpcManager, lo
 	var listenPublic func() error
 	if hl != nil && hl.PublicServerConfig() != nil {
 		var err error
-		listenPublic, err = configurePublicServerListener(ctx, hl, logger, mWare.public)
+		listenPublic, err = configurePublicServerListener(ctx, hl, mWare.public)
 		if err != nil {
 			return err
 		}
@@ -44,7 +43,7 @@ func Server(ctx context.Context, name string, hl Manager, grpcHl GrpcManager, lo
 	var listenPublicGrpc func() error
 	if grpcHl != nil && grpcHl.GrpcPublicServerConfig() != nil {
 		var err error
-		listenPublicGrpc, err = configurePublicGrpcServerListener(ctx, grpcHl, logger)
+		listenPublicGrpc, err = configurePublicGrpcServerListener(ctx, grpcHl)
 		if err != nil {
 			return err
 		}

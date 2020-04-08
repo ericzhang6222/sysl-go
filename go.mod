@@ -3,6 +3,7 @@ module github.com/anz-bank/sysl-go
 go 1.14
 
 require (
+	github.com/anz-bank/pkg v0.0.0-20200406022752-a4ac058d958c
 	github.com/go-chi/chi v4.0.4+incompatible
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/golang/protobuf v1.3.5

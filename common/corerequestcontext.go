@@ -6,16 +6,8 @@ import (
 
 	"github.com/anz-bank/sysl-go/common/internal"
 
-	"github.com/sirupsen/logrus"
+	"github.com/anz-bank/pkg/log"
 )
-
-func GetLogEntryFromContext(ctx context.Context) *logrus.Entry {
-	return getCoreContext(ctx).entry
-}
-
-func GetLoggerFromContext(ctx context.Context) *logrus.Logger {
-	return getCoreContext(ctx).logger
-}
 
 func NewLoggingRoundTripper(name string, base http.RoundTripper) http.RoundTripper {
 	// temporary pass-through to get the real round tripper from the request context
@@ -34,11 +26,6 @@ type reqHeaderContext struct {
 type respHeaderAndStatusContext struct {
 	header http.Header
 	status int
-}
-
-// LoggerToContext create a new context containing the logger
-func LoggerToContext(ctx context.Context, logger *logrus.Logger, entry *logrus.Entry) context.Context {
-	return context.WithValue(ctx, coreRequestContextKey{}, &coreRequestContext{logger, entry})
 }
 
 // RequestHeaderToContext create a new context containing the request header
@@ -84,16 +71,13 @@ func UpdateResponseStatus(ctx context.Context, status int) error {
 	return nil
 }
 
-func CoreRequestContextMiddleware(logger *logrus.Logger) func(next http.Handler) http.Handler {
+func CoreRequestContextMiddleware() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			ctx := r.Context()
-
-			entry := logger.WithField(traceIDLogField, GetTraceIDFromContext(ctx))
-			ctx = LoggerToContext(r.Context(), logger, entry)
+			ctx := log.With(traceIDLogField, GetTraceIDFromContext(r.Context())).Onto(r.Context())
 
 			ctx = internal.AddResponseBodyMonitorToContext(ctx)
-			defer internal.CheckForUnclosedResponses(ctx, entry)
+			defer internal.CheckForUnclosedResponses(ctx)
 
 			reqLogger, entry := internal.NewRequestLogger(entry, r)
 			w = reqLogger.ResponseWriter(w)

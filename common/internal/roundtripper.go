@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"github.com/anz-bank/pkg/log"
 )
 
 type loggingRoundtripper struct {
