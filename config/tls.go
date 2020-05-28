@@ -65,6 +65,7 @@ type TLSConfig struct {
 	ServerIdentity     *ServerIdentityConfig  `yaml:"serverIdentity"`
 	TrustedCertPool    *TrustedCertPoolConfig `yaml:"trustedCertPool"`
 	InsecureSkipVerify bool                   `yaml:"insecureSkipVerify"`
+	SelfSigned         bool                   `yaml:"selfSigned"`
 }
 
 type TrustedCertPoolConfig struct {
@@ -267,6 +268,25 @@ func MakeTLSConfig(cfg *TLSConfig) (*tls.Config, error) {
 	if cfg.InsecureSkipVerify {
 		//nolint:gosec // This is configured by the user
 		return &tls.Config{InsecureSkipVerify: true}, nil
+	}
+
+	// certificates exchanged are self signed mostly applicable for dev env
+	// skip setting for rootcas, clientcas and cipher suites
+	if cfg.SelfSigned {
+		tlsMin, tlsMax, err := TLSVersions(cfg)
+		if err != nil {
+			return nil, err
+		}
+		ourIdentityCertificates, err := OurIdentityCertificates(cfg)
+		if err != nil {
+			return nil, err
+		}
+		return &tls.Config{
+			MinVersion:   tlsMin,
+			MaxVersion:   tlsMax,
+			Certificates: ourIdentityCertificates,
+			ClientAuth:   tls.NoClientCert,
+		}, nil
 	}
 
 	trustedCAs, err := GetTrustedCAs(cfg)
