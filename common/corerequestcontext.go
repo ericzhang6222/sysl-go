@@ -90,14 +90,14 @@ func UpdateResponseStatus(ctx context.Context, status int) error {
 
 func CoreRequestContextMiddleware(logger ...*logrus.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
+		var ctxlogger *logrus.Logger
+		if len(logger) == 1 {
+			ctxlogger := logger[0]
+		}
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			// insert the logger to the context if the logger is passed in
-			for _, l := range logger {
-				if l != nil {
-					ctx = LoggerToContext(ctx, l, nil)
-					break
-				}
+			if ctxlogger != nil {
+				ctx = LoggerToContext(ctx, ctxlogger, nil)
 			}
 			ctx = log.With(traceIDLogField, GetTraceIDFromContext(ctx)).Onto(ctx)
 
