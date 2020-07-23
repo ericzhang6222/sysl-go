@@ -235,10 +235,18 @@ func OnRestRequestResultHTTPResult(result *HTTPResult, err error, opts []RestReq
 	OnRestRequestResult(restResult, err, opts)
 }
 
-func OnRestResult(ctx context.Context, result core.RestResult, err error) {
+func OnRestResultHTTPResult(ctx context.Context, result *HTTPResult, err error) {
 	// find the object in the context (if available) and set the result
 }
 
-func OnRestResultHTTPResult(ctx context.Context, result *HTTPResult, err error) {
+func OnRestResult(ctx context.Context, result core.RestResult, err error) {
 	// find the object in the context (if available) and set the result
+	raw := ctx.Value(common.RestResultContextKey{})
+	if raw == nil {
+		return
+	}
+	target := raw.(*core.RestResult)
+	target.Body = result.Body
+	target.Headers = result.Headers
+	target.StatusCode = result.StatusCode
 }

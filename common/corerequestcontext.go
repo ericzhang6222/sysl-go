@@ -90,14 +90,26 @@ func RespHeaderAndStatusFromContext(ctx context.Context) (header http.Header, st
 	return
 }
 
+type RestResultContextKey struct{}
+
 // Provision within the context the ability to retrieve the result of a rest request
 func ProvisionRestResult(ctx context.Context) context.Context {
-	// insert an object in the context
+	return context.WithValue(ctx, RestResultContextKey{}, &core.RestResult{})
 }
+
+// ctx = common.ProvisionRestResult(ctx)
+// result, err := client.FooBar(ctx) - rest request
+// restResult := common.GetRestResult(ctx)
 
 // Get the result of the most recent rest request. The context must be provisioned prior to the
 // request taking place with a call to ProvisionRestResult
-func GetResultResult(ctx context.Context) *core.RestResult {
+func GetRestResult(ctx context.Context) *core.RestResult {
+	raw := ctx.Value(RestResultContextKey{})
+	if raw == nil {
+		return nil
+	}
+	return raw.(*core.RestResult)
+
 	// retrieve the object from the context if available, nil if not
 }
 
