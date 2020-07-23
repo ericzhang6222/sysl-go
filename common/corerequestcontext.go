@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/anz-bank/sysl-go/core"
+
 	"github.com/anz-bank/sysl-go/logconfig"
 
 	"github.com/anz-bank/sysl-go/common/internal"
@@ -86,6 +88,17 @@ func RespHeaderAndStatusFromContext(ctx context.Context) (header http.Header, st
 	header = respHeaderAndStatus.header
 	status = respHeaderAndStatus.status
 	return
+}
+
+// Provision within the context the ability to retrieve the result of a rest request
+func ProvisionRestResult(ctx context.Context) context.Context {
+	// insert an object in the context
+}
+
+// Get the result of the most recent rest request. The context must be provisioned prior to the
+// request taking place with a call to ProvisionRestResult
+func GetResultResult(ctx context.Context) *core.RestResult {
+	// retrieve the object from the context if available, nil if not
 }
 
 func UpdateResponseStatus(ctx context.Context, status int) error {
